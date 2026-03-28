@@ -1,0 +1,146 @@
+# Hermes Agent CLI Configuration
+
+# =============================================================================
+# Model Configuration
+# =============================================================================
+model:
+  default: "mlx-community/Qwen3.5-122B-A10B-4bit"
+  provider: "custom"
+  base_url: "http://host.internal:8081/v1"
+
+# =============================================================================
+# Terminal Tool Configuration
+# =============================================================================
+terminal:
+  backend: "local"
+  cwd: "/workspace"
+  timeout: 180
+  lifetime_seconds: 300
+  container_cpu: 1
+  container_memory: 5120
+  container_disk: 51200
+  container_persistent: true
+
+# =============================================================================
+# Security Scanning (tirith)
+# =============================================================================
+# Optional pre-exec command security scanning via tirith.
+# Detects homograph URLs, pipe-to-shell, terminal injection, env manipulation.
+# Install: brew install sheeki03/tap/tirith
+# Docs: https://github.com/sheeki03/tirith
+#
+# security:
+#   tirith_enabled: true        # Enable/disable tirith scanning
+#   tirith_path: "tirith"       # Path to tirith binary (supports ~ expansion)
+#   tirith_timeout: 5           # Scan timeout in seconds
+#   tirith_fail_open: true      # Allow commands if tirith unavailable
+
+# =============================================================================
+# Browser Tool Configuration
+# =============================================================================
+browser:
+  inactivity_timeout: 120
+
+# =============================================================================
+# Context Compression
+# =============================================================================
+compression:
+  enabled: true
+  threshold: 0.50
+  target_ratio: 0.20
+  protect_last_n: 20
+  summary_model: "mlx-community/Qwen3.5-122B-A10B-4bit"
+  summary_provider: "custom"
+
+# =============================================================================
+# Persistent Memory
+# =============================================================================
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  nudge_interval: 10
+  flush_min_turns: 6
+
+# =============================================================================
+# Session Reset Policy (Messaging Platforms)
+# =============================================================================
+session_reset:
+  mode: both
+  idle_minutes: 1440
+  at_hour: 4
+
+group_sessions_per_user: true
+
+# =============================================================================
+# Skills Configuration
+# =============================================================================
+skills:
+  creation_nudge_interval: 15
+
+# =============================================================================
+# Agent Behavior
+# =============================================================================
+agent:
+  max_turns: 90
+  verbose: false
+  reasoning_effort: "medium"
+
+# =============================================================================
+# Toolsets
+# =============================================================================
+toolsets:
+  - hermes-cli
+
+# =============================================================================
+# Platform Toolsets
+# =============================================================================
+platform_toolsets:
+  cli: [hermes-cli]
+  telegram: [hermes-telegram]
+
+# =============================================================================
+# Voice Transcription (Speech-to-Text)
+# =============================================================================
+stt:
+  enabled: true
+  model: "whisper-1"
+
+# =============================================================================
+# Code Execution Sandbox
+# =============================================================================
+code_execution:
+  timeout: 300
+  max_tool_calls: 50
+
+# =============================================================================
+# Subagent Delegation
+# =============================================================================
+# Subagents use the larger qwen3.5-397b for complex/harder tasks
+delegation:
+  max_iterations: 50
+  default_toolsets: ["terminal", "file", "web"]
+  model: "qwen3.5-397b"
+  provider: "custom"
+
+# =============================================================================
+# Fallback Model
+# =============================================================================
+# Falls back to the larger qwen3.5-397b on errors or when the fast model struggles
+fallback_model:
+  provider: custom
+  model: qwen3.5-397b
+  base_url: "http://host.internal:8081/v1"
+  api_key_env: OPENAI_API_KEY
+
+# =============================================================================
+# Display
+# =============================================================================
+display:
+  compact: false
+  tool_progress: all
+  background_process_notifications: all
+  bell_on_complete: false
+  show_reasoning: false
+  skin: default

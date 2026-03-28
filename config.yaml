@@ -1,0 +1,151 @@
+model:
+  default: mlx-community/Qwen3.5-122B-A10B-4bit
+  provider: custom
+  base_url: http://100.100.241.110:8081/v1
+toolsets:
+- hermes-cli
+agent:
+  max_turns: 90
+terminal:
+  backend: local
+  cwd: /workspace
+  timeout: 180
+  docker_image: nikolaik/python-nodejs:python3.11-nodejs20
+  singularity_image: docker://nikolaik/python-nodejs:python3.11-nodejs20
+  modal_image: nikolaik/python-nodejs:python3.11-nodejs20
+  daytona_image: nikolaik/python-nodejs:python3.11-nodejs20
+  container_cpu: 1
+  container_memory: 5120
+  container_disk: 51200
+  container_persistent: true
+  docker_volumes: []
+browser:
+  inactivity_timeout: 120
+  record_sessions: false
+checkpoints:
+  enabled: false
+  max_snapshots: 50
+compression:
+  enabled: true
+  threshold: 0.85
+  summary_model: mlx-community/Qwen3.5-122B-A10B-4bit
+  summary_provider: custom
+auxiliary:
+  vision:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  web_extract:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  compression:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  session_search:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  skills_hub:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  mcp:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+  flush_memories:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+display:
+  compact: false
+  personality: kawaii
+  resume_display: full
+  bell_on_complete: false
+  show_reasoning: false
+  skin: default
+  reasoning: 'off'
+  bell: 'off'
+tts:
+  provider: edge
+  edge:
+    voice: en-US-AriaNeural
+  elevenlabs:
+    voice_id: pNInz6obpgDQGcFmaJgB
+    model_id: eleven_multilingual_v2
+  openai:
+    model: gpt-4o-mini-tts
+    voice: alloy
+stt:
+  enabled: true
+  provider: local
+  local:
+    model: base
+  openai:
+    model: whisper-1
+  model: whisper-1
+voice:
+  record_key: ctrl+b
+  max_recording_seconds: 120
+  auto_tts: false
+  silence_threshold: 200
+  silence_duration: 3.0
+human_delay:
+  mode: 'off'
+  min_ms: 800
+  max_ms: 2500
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 16000
+  user_char_limit: 8000
+  flush_min_turns: 3
+session_reset:
+  mode: idle
+  idle_minutes: 2880
+delegation:
+  model: qwen3.5-397b
+  provider: custom
+  base_url: ''
+  api_key: ''
+prefill_messages_file: ''
+honcho: {}
+timezone: ''
+discord:
+  require_mention: true
+  free_response_channels: ''
+  auto_thread: true
+mcp_servers:
+  memory:
+    command: uvx
+    args: ["mcp-server-qdrant"]
+    env:
+      QDRANT_LOCAL_PATH: /home/rouvenheck/.hermes/memory/qdrant
+      COLLECTION_NAME: hermes-memory
+      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+    timeout: 30
+    connect_timeout: 30
+command_allowlist: []
+quick_commands: {}
+personalities: {}
+security:
+  redact_secrets: true
+  tirith_enabled: true
+  tirith_path: tirith
+  tirith_timeout: 5
+  tirith_fail_open: true
+_config_version: 8
+fallback_model:
+  provider: custom
+  model: qwen3.5-397b
+  base_url: http://100.100.241.110:8081/v1
+  api_key_env: OPENAI_API_KEY

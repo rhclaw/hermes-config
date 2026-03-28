@@ -1,0 +1,13 @@
+.env
+state.db*
+sessions/
+logs/
+document_cache/
+image_cache/
+*.lock
+gateway.pid
+gateway_state.json
+processes.json
+.hermes_history
+.skills_prompt_snapshot.json
+.update_check
