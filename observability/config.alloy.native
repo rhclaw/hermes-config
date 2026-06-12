@@ -1,0 +1,53 @@
+// Grafana Alloy — NATIVE / journald-only variant (no Docker).
+//
+// Use this on a host that has no Docker engine (e.g. hermes1, where logs are
+// 100% journald — the gateway is a root `--user` service and there are no
+// containers to tail). It is the docker `config.alloy` with the
+// discovery.docker / loki.source.docker blocks removed; the journald source +
+// relabel + loki.write are identical. Run it with the apt-packaged `alloy`
+// binary under the packaged `alloy.service` — see README.md "Native deploy".
+//
+// Central stack + decision: rh7/mac-studio-services#277 (deployed per #289).
+//
+// PII note: the Hermes gateway's journal can carry email/Signal/chat message
+// content. The sink is the SELF-HOSTED, tailnet-only Loki (short retention) —
+// never a SaaS log product. Do not point LOKI_PUSH_URL off the tailnet.
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ---- journald: system + user units (hermes-gateway runs as a `--user` service,
+//      StandardOutput=journal → user journal) ----
+loki.relabel "journal" {
+  forward_to = []
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal__systemd_user_unit"]
+    target_label  = "unit"
+  }
+}
+
+loki.source.journal "all" {
+  // Persistent journal dir holds the system journal; on a box where the gateway
+  // runs as a root (uid-0) `--user` service, its entries fold into the system
+  // journal carrying _SYSTEMD_USER_UNIT (no split user-0.journal), which the
+  // user_unit relabel above restores to unit="hermes-gateway.service".
+  // If this box uses volatile journals only, change to "/run/log/journal".
+  path          = "/var/log/journal"
+  max_age       = "12h"
+  relabel_rules = loki.relabel.journal.rules
+  labels        = { job = "journal", host = "vps-hermes" }
+  forward_to    = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    // Honcho VPS Loki, tailnet IP. Override via LOKI_PUSH_URL if the IP drifts.
+    url = coalesce(sys.env("LOKI_PUSH_URL"), "http://100.122.214.76:3100/loki/api/v1/push")
+  }
+}
