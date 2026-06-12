@@ -1,0 +1,26 @@
+# systemd unit — supervises the Alloy log-collector docker-compose service.
+# Runs as root (system unit) so it can read /var/log/journal (incl. the user
+# journal where hermes-gateway logs) and the docker socket.
+#
+# Set WorkingDirectory to wherever this repo is checked out for docker services.
+#
+# Install:
+#   sudo install -m 0644 observability/alloy.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now alloy
+
+[Unit]
+Description=Alloy log collector (ships logs to the Honcho VPS Loki)
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/hermes-config/observability
+ExecStart=/usr/bin/docker compose up --abort-on-container-exit
+ExecStop=/usr/bin/docker compose down
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
