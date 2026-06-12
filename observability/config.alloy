@@ -1,0 +1,67 @@
+// Grafana Alloy — Hermes VPS log collector. Ships this box's journald (system +
+// user) and docker container logs to the Honcho VPS Loki over the tailnet.
+//
+// Part of the agent-memory plane's centralized observability (single pane of
+// glass across Studio + the VPSes). Central stack + decision:
+// rh7/mac-studio-services#277.
+//
+// PII note: the Hermes gateway's journal can carry email/Signal/chat message
+// content. That's why the sink is the SELF-HOSTED, tailnet-only Loki (short
+// retention) — never a SaaS log product.
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ---- journald: system + user units (hermes-gateway runs as a `--user` service,
+//      StandardOutput=journal → user journal) ----
+loki.relabel "journal" {
+  forward_to = []
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal__systemd_user_unit"]
+    target_label  = "unit"
+  }
+}
+
+loki.source.journal "all" {
+  // Persistent journal dir holds BOTH system.journal and user-<uid>.journal.
+  // If this box uses volatile journals only, change to "/run/log/journal".
+  path          = "/var/log/journal"
+  max_age       = "12h"
+  relabel_rules = loki.relabel.journal.rules
+  labels        = { job = "journal", host = "vps-hermes" }
+  forward_to    = [loki.write.default.receiver]
+}
+
+// ---- docker container logs (e.g. the :8081 routing proxy) ----
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { job = "docker", host = "vps-hermes" }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    // Honcho VPS Loki, tailnet IP. Override via LOKI_PUSH_URL if the IP drifts.
+    url = coalesce(sys.env("LOKI_PUSH_URL"), "http://100.122.214.76:3100/loki/api/v1/push")
+  }
+}

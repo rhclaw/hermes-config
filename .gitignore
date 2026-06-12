@@ -11,3 +11,6 @@ processes.json
 .hermes_history
 .skills_prompt_snapshot.json
 .update_check
+
+# Alloy log-collector runtime positions
+observability/data/
