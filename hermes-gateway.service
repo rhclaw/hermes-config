@@ -1,19 +1,26 @@
 [Unit]
 Description=Hermes Agent Gateway - Messaging Platform Integration
-After=network.target
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/opt/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace
-ExecStop=/home/rouvenheck/.local/bin/hermes gateway stop
-WorkingDirectory=/opt/hermes-agent
-Environment="PATH=/opt/hermes-agent/venv/bin:/opt/hermes-agent/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-Environment="VIRTUAL_ENV=/opt/hermes-agent/venv"
-Restart=on-failure
-RestartSec=10
+ExecStart=/root/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace
+WorkingDirectory=/root/.hermes/hermes-agent
+Environment="PATH=/root/.hermes/hermes-agent/venv/bin:/root/.hermes/hermes-agent/node_modules/.bin:/root/.hermes/node/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="VIRTUAL_ENV=/root/.hermes/hermes-agent/venv"
+Environment="HERMES_HOME=/root/.hermes"
+Environment="IDENTITY_CACHE_PATH=/root/.hermes/identity-cache.json"
+Restart=always
+RestartSec=5
+RestartMaxDelaySec=300
+RestartSteps=5
+RestartForceExitStatus=75
 KillMode=mixed
 KillSignal=SIGTERM
-TimeoutStopSec=15
+ExecReload=/bin/kill -USR1 $MAINPID
+TimeoutStopSec=210
 StandardOutput=journal
 StandardError=journal
 
