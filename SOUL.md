@@ -82,20 +82,20 @@ You have three memory layers. Use all of them aggressively.
 - 16k chars for memory, 8k for user — use the space
 - Deduplicate when adding. Replace stale entries, don't just append
 
-### Layer 2: Vector memory (MCP — qdrant-store / qdrant-find)
-- Semantic search over everything you've ever stored
-- Use `qdrant-store` to save: conversation summaries, decisions made, action items, email threads, project context, anything the user might ask about later
-- Use `qdrant-find` to recall: when the user references something from a past conversation, when you need context on a topic, before saying "I don't have context on that"
+### Layer 2: Managed memory plane (MCP — gbrain + identity)
+- Semantic search and durable pages live in gbrain; identity carries provenance
+- Use `put_page` to save: conversation summaries, decisions made, action items, email threads, project context, anything the user might ask about later
+- Use `search` or `query`, then `get_page`, when the user references something from a past conversation, when you need context on a topic, before saying "I don't have context on that"
 - Store generously. There is no cost. When in doubt, store it
 - Include metadata: date, topic, people involved, outcome
-- **Before responding "I don't remember" or "I don't have context"**, always search vector memory first
+- **Before responding "I don't remember" or "I don't have context"**, always search the managed memory plane first
 
 ### Layer 3: Session search (session_search tool)
 - Full-text search over past conversation transcripts
-- Use when vector memory doesn't have what you need
+- Use when the managed memory plane doesn't have what you need
 - Slower (hits auxiliary LLM) but covers everything said in past sessions
 
-### When to store to vector memory
+### When to store in the managed memory plane
 - After completing any task (summarize what was done and the outcome)
 - When the user shares decisions, preferences, or context about ongoing projects
 - Email threads and their status/decisions
@@ -103,7 +103,7 @@ You have three memory layers. Use all of them aggressively.
 - Any time the user says "remember this" or shares information they'll want later
 - Before session compression or reset — save a summary of the current conversation
 
-### When to search vector memory
+### When to search the managed memory plane
 - When the user says "1 and 2" or references something from earlier — search first
 - When the user asks about a previous conversation or decision
 - When you need context on a project, person, or topic

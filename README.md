@@ -6,6 +6,27 @@ Personal configuration for [Hermes Agent](https://github.com/NousResearch/hermes
 
 Hermes is installed at `/opt/hermes-agent` and runs as a systemd user service.
 
+### Runtime configuration authority
+
+This repository intentionally does not track a runtime `config.yaml`. The live
+`/root/.hermes/config.yaml` can contain host-specific endpoints and credentials;
+it must never be copied back into Git.
+
+The reviewed memory-profile authority is
+`rh7/agent-memory/hermes-wiring/apply_runtime_profile.py`. The
+`rh7/agent-memory` Hermes control service stages that transform against the
+live config, validates the result, snapshots the previous runtime files, and
+then activates it. A failed deployment restores the snapshot automatically.
+For an operator-requested restoration, use the fixed client from the reviewed
+`rh7/agent-memory` checkout; rollback is latest-snapshot only:
+
+```sh
+./scripts/hermes-control rollback --execute rollback
+```
+
+`cli-config.yaml` is an illustrative upstream/defaults reference only. It is
+not deployed and is not a runtime source of truth.
+
 ### LLM Backend
 
 - **Host:** Mac Studio 1 via Tailscale (`100.100.241.110`)
@@ -21,7 +42,7 @@ Hermes is installed at `/opt/hermes-agent` and runs as a systemd user service.
 
 Three-layer memory system:
 1. **Built-in** — `MEMORY.md` / `USER.md` (file-based, in system prompt)
-2. **Vector** — Qdrant MCP server (semantic search, local storage)
+2. **Managed memory plane** — gbrain MCP memory with identity/provenance
 3. **Session search** — full-text over past transcripts
 
 ### Gateway Service
@@ -43,8 +64,7 @@ systemctl --user restart hermes-gateway
 
 | File | Description |
 |------|-------------|
-| `cli-config.yaml` | Main CLI/agent configuration |
-| `config.yaml` | Runtime config (model routing, MCP servers, TTS, etc.) |
+| `cli-config.yaml` | Illustrative upstream/defaults reference; not deployed |
 | `SOUL.md` | Persona / system prompt |
 | `hermes-gateway.service` | Systemd unit for gateway |
 | `.env.example` | Environment variables template (secrets redacted) |
